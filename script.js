@@ -28,6 +28,7 @@ function renderTasks() {
         checkbox.checked = task.done;
         checkbox.addEventListener('change', () => {
             task.done = checkbox.checked;
+            saveTasksToLocalStorage();
             renderTasks();
         })
 
@@ -62,10 +63,42 @@ function addTask(){
         done: false,
     };
     tasks.push(newTask);
+    saveTasksToLocalStorage();
 }
 
 // タスクを削除する関数
 function deleteTask(index) {
     tasks.splice(index, 1);
+    saveTasksToLocalStorage();
     renderTasks();
 }
+
+// タスクをローカルストレージに保存する関数
+function saveTasksToLocalStorage() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// タスクをローカルストレージから読み込む関数
+function loadTasksFromLocalStorage() {
+    const stored = localStorage.getItem('tasks');
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                parsed.forEach(task => {
+                    if (typeof task.text === 'string' && typeof task.done === 'boolean') {
+                        tasks.push(task);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('ローカルストレージの読み込みに失敗: ', e);
+        }
+    }
+}
+
+// ページ読み込み時にローカルストレージから読み込み・表示
+window.addEventListener('DOMContentLoaded', () => {
+    loadTasksFromLocalStorage();
+    renderTasks();
+});
