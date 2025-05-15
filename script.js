@@ -5,12 +5,14 @@ const tasks = [];
 // 追加ボタン
 const addButton =  document.getElementById('addButton');
 const todoInput = document.getElementById('todoInput');
+const dueDateInput = document.getElementById('dueDateInput');
 
 // 追加ボタンが押された時の処理
 addButton.addEventListener('click', () => {
     addTask();
     renderTasks();
     todoInput.value = '';
+    dueDateInput.value = '';
 })
 
 // タスクリストを表示する関数
@@ -35,9 +37,29 @@ function renderTasks() {
         // タスクテキストを表示
         const span = document.createElement('span');
         span.textContent = task.text;
+        
+        // 期限を表示
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'due-date';
+        if (task.dueDate) {
+            const today = new Date();
+            const dueDate = new Date(task.dueDate);
+            dateSpan.textContent = `期限: ${task.dueDate}`;
+
+            // 期限切れや期限が近い場合の警告表示
+            if (dueDate < today) {
+                dateSpan.style.color = 'red'; // 期限切れ
+            } else if (dueDate - today <= 3 * 24 * 60 * 60 * 1000) {
+                dateSpan.style.color = 'orange'; // 期限3日以内
+            }
+        }
+
+        // タスクが完了した時の処理
         if (task.done) {
             span.style.textDecoration = 'line-through';
             span.style.color = '#999';
+            dateSpan.style.textDecoration = 'line-through';
+            dateSpan.style.color = '#999';
         }
         
         // 削除ボタンを表示
@@ -48,6 +70,7 @@ function renderTasks() {
 
         taskDiv.appendChild(checkbox);
         taskDiv.appendChild(span);
+        taskDiv.appendChild(dateSpan); 
         taskDiv.appendChild(deleteBtn);
         list.appendChild(taskDiv);
     });
@@ -56,11 +79,13 @@ function renderTasks() {
 // タスクを追加する関数
 function addTask(){
     const taskText = todoInput.value.trim();
+    const dueDate = dueDateInput.value;
     if (taskText === '') return;
 
     const newTask = {
         text: taskText,
         done: false,
+        dueDate: dueDate,
     };
     tasks.push(newTask);
     saveTasksToLocalStorage();
